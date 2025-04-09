@@ -6,7 +6,13 @@ import {
   merge,
   parseYamlWithVariables,
 } from "./lib/config.ts";
-import { CharacterConfig, DeepPartial, Issue, PlatformSdk } from "./types.ts";
+import {
+  CharacterConfig,
+  DeepPartial,
+  GlobalConfig,
+  Issue,
+  PlatformSdk,
+} from "./types.ts";
 import {
   generateText,
   getModel,
@@ -14,7 +20,7 @@ import {
   jsonSchema,
   ToolSet,
 } from "./lib/llm.ts";
-import { CoreMessage } from "npm:ai@4.1.54";
+import { CoreMessage, LanguageModelV1 } from "npm:ai@4.1.54";
 import { McpHub } from "./lib/mcp.ts";
 import { BRANCH, OWNER, REPO, WORKSPACE } from "./lib/platform.ts";
 import { getPlatformSdk } from "./lib/platform.ts";
@@ -58,8 +64,37 @@ export class Character {
     return getModel(this.config.llm.provider, this.config.llm.model);
   }
 
+  get unstableModelPreferences() {
+    return Object.keys(
+      this.config.llm.__unstable_model_preferences || {}
+    ).reduce<
+      Partial<
+        Record<
+          keyof Exclude<
+            GlobalConfig["llm"]["__unstable_model_preferences"],
+            undefined
+          >,
+          LanguageModelV1
+        >
+      >
+    >((prev, cur) => {
+      const preference =
+        this.config.llm.__unstable_model_preferences?.[cur as "bestCost"];
+      if (preference) {
+        prev[cur as "bestCost"] = getModel(
+          preference.provider,
+          preference.model
+        );
+      }
+      return prev;
+    }, {});
+  }
+
   public async initialize() {
-    await this.mcpHub.connect({ model: this.model });
+    await this.mcpHub.connect({
+      model: this.model,
+      unstableModelPreferences: this.unstableModelPreferences,
+    });
   }
 
   public async finalize() {
@@ -119,10 +154,16 @@ export class Character {
           execute: async (input) => {
             console.log("going to execute", { name: t.name, input });
             try {
-              const { content } = await t.client.callTool({
-                name: t.name,
-                arguments: input as unknown as Record<string, string>,
-              });
+              const { content } = await t.client.callTool(
+                {
+                  name: t.name,
+                  arguments: input as unknown as Record<string, string>,
+                },
+                undefined,
+                {
+                  timeout: 300_000,
+                }
+              );
 
               return JSON.stringify(content);
             } catch (error: any) {

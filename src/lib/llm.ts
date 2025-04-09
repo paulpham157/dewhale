@@ -10,7 +10,7 @@ import {
   ToolSet,
   CoreMessage,
 } from "npm:ai@4.1.54";
-import { PromptMessage } from "npm:@modelcontextprotocol/sdk@1.6.1";
+import { PromptMessage } from "npm:@modelcontextprotocol/sdk@1.6.1/types.js";
 
 const google = createGoogleGenerativeAI({
   baseURL: Deno.env.get("GOOGLE_BASE_URL"),

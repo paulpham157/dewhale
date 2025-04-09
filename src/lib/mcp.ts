@@ -25,7 +25,13 @@ export class McpHub {
     this.servers = servers;
   }
 
-  public async connect({ model }: { model: LanguageModelV1 }) {
+  public async connect({
+    model: defaultModel,
+    unstableModelPreferences,
+  }: {
+    model: LanguageModelV1;
+    unstableModelPreferences: Partial<Record<string, LanguageModelV1>>;
+  }) {
     for (const server of this.servers) {
       const transport =
         server.type === "stdio"
@@ -61,8 +67,35 @@ export class McpHub {
       );
 
       client.setRequestHandler(CreateMessageRequestSchema, async (request) => {
-        const { messages, maxTokens, systemPrompt, temperature } =
-          request.params;
+        const {
+          messages,
+          maxTokens,
+          systemPrompt,
+          temperature,
+          modelPreferences,
+        } = request.params;
+
+        let model = defaultModel;
+        const priorities = [
+          modelPreferences?.intelligencePriority ?? 0,
+          modelPreferences?.costPriority ?? 0,
+          modelPreferences?.speedPriority ?? 0,
+        ];
+        const maxIndex = priorities.indexOf(Math.max(...priorities));
+        switch (true) {
+          case maxIndex === 0 &&
+            unstableModelPreferences.bestIntelligence !== undefined:
+            model = unstableModelPreferences.bestIntelligence;
+            break;
+          case maxIndex === 1 &&
+            unstableModelPreferences.bestCost !== undefined:
+            model = unstableModelPreferences.bestCost;
+            break;
+          case maxIndex === 2 &&
+            unstableModelPreferences.bestSpeed !== undefined:
+            model = unstableModelPreferences.bestSpeed;
+            break;
+        }
 
         console.log("[INTERNAL]Sampling Request:", {
           messages,

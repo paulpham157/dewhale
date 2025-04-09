@@ -6,6 +6,20 @@ export interface GlobalConfig {
     maxTokens?: number;
     maxRetries?: number;
     maxSteps?: number;
+    __unstable_model_preferences?: {
+      bestIntelligence?: {
+        provider: string;
+        model: string;
+      };
+      bestCost?: {
+        provider: string;
+        model: string;
+      };
+      bestSpeed?: {
+        provider: string;
+        model: string;
+      };
+    };
   };
   mcp: {
     servers: McpServer[];
