@@ -5,8 +5,8 @@ import {
   WORKSPACE,
   REPO,
   OWNER,
-} from "./lib/platform.ts";
-import { Issue, PlatformSdk } from "./types.ts";
+} from "./platform/index.ts";
+import { Issue } from "./types.ts";
 
 console.log("hello v2");
 
@@ -19,13 +19,13 @@ const characters = await loadAllCharacters(WORKSPACE, data);
 
 const event = await getTriggerEvent();
 
-const sdk = getPlatformSdk("github");
+const sdk = getPlatformSdk();
 
 switch (event?.name) {
   case "issues": {
     const issue = await sdk.getIssueFromEvent(event);
 
-    await letCharacterDoTask(sdk, characters, issue);
+    await letCharacterDoTask(characters, issue);
     break;
   }
   case "schedule": {
@@ -35,7 +35,7 @@ switch (event?.name) {
       labels: ["schedule"],
     });
     for (const issue of issues) {
-      await letCharacterDoTask(sdk, characters, issue);
+      await letCharacterDoTask(characters, issue);
     }
     break;
   }
@@ -43,11 +43,7 @@ switch (event?.name) {
     console.warn(`Unsupported event`);
 }
 
-async function letCharacterDoTask(
-  sdk: PlatformSdk,
-  characters: Character[],
-  issue: Issue
-) {
+async function letCharacterDoTask(characters: Character[], issue: Issue) {
   if (issue.state.toLowerCase() !== "open") {
     return;
   }

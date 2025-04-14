@@ -22,8 +22,13 @@ import {
 } from "./lib/llm.ts";
 import { CoreMessage, LanguageModelV1 } from "npm:ai@4.1.54";
 import { McpHub } from "./lib/mcp.ts";
-import { BRANCH, OWNER, REPO, WORKSPACE } from "./lib/platform.ts";
-import { getPlatformSdk } from "./lib/platform.ts";
+import {
+  BRANCH,
+  OWNER,
+  REPO,
+  WORKSPACE,
+  getPlatformSdk,
+} from "./platform/index.ts";
 
 export const DEFAULT_CHARACTER_CONFIG: CharacterConfig = {
   ...DEFAULT_GLOBAL_CONFIG,
@@ -53,7 +58,7 @@ export class Character {
     this.mcpHub = new McpHub({
       servers: this.config.mcp.servers,
     });
-    this.sdk = getPlatformSdk("github");
+    this.sdk = getPlatformSdk();
   }
 
   get name(): string {
@@ -94,6 +99,7 @@ export class Character {
     await this.mcpHub.connect({
       model: this.model,
       unstableModelPreferences: this.unstableModelPreferences,
+      maxRetries: this.config.llm.maxRetries,
     });
   }
 
@@ -161,7 +167,7 @@ export class Character {
                 },
                 undefined,
                 {
-                  timeout: 300_000,
+                  timeout: 600_000,
                 }
               );
 

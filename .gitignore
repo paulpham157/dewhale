@@ -138,3 +138,6 @@ __debug
 
 # macOS-specific files
 .DS_Store
+
+# temporary files
+tmp

@@ -1,6 +1,6 @@
 {
   "name": "@arcfra/dewhale",
-  "version": "0.1.8",
+  "version": "0.1.16",
   "license": "MIT",
   "exports": "./src/entry.ts",
   "publish": {

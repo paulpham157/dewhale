@@ -61,11 +61,10 @@ export type TriggerEvent = IssueEvent | ScheduleEvent;
 
 export type IssueEvent = {
   name: "issues";
-  action: string;
   issue: {
-    owner: string;
-    repo: string;
-    id: number;
+    owner: string; // github.owner, gitlab.namespace
+    repo: string; // github.repo, gitlab.project_id
+    id: number; // github.issue.id, gitlab.issue.iid
   };
 };
 
@@ -73,7 +72,7 @@ export type ScheduleEvent = {
   name: "schedule";
 };
 
-export type PlatformType = "github";
+export type PlatformType = "github" | "gitlab";
 
 export interface PlatformSdk {
   getIssueFromEvent(event: IssueEvent): Promise<Issue>;
@@ -86,12 +85,12 @@ export interface PlatformSdk {
 }
 
 export interface Issue {
-  owner: string;
-  repo: string;
-  id: number;
+  owner: string; // github.owner, gitlab.namespace
+  repo: string; // github.repo, gitlab.project_id
+  id: number; // github.issue.id, gitlab.issue.iid
   title: string;
   content: string;
-  state: string;
+  state: string; // github's 'open' state and gitlab's 'opened' state are normalized to 'open'
   labels: { name: string }[];
   comments: IssueComment[];
 }

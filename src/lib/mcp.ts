@@ -28,9 +28,11 @@ export class McpHub {
   public async connect({
     model: defaultModel,
     unstableModelPreferences,
+    maxRetries,
   }: {
     model: LanguageModelV1;
     unstableModelPreferences: Partial<Record<string, LanguageModelV1>>;
+    maxRetries?: number;
   }) {
     for (const server of this.servers) {
       const transport =
@@ -130,6 +132,7 @@ export class McpHub {
           maxTokens: maxTokens,
           model,
           temperature,
+          maxRetries,
         });
 
         console.log("[INTERNAL]Sampling Result:", text);
